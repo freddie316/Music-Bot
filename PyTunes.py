@@ -6,35 +6,23 @@ Date: Thu Mar 16 2023
 
 import os
 import asyncio
-import youtube_dl
+import yt_dlp
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-ytdl = youtube_dl.YoutubeDL()
+ytdl_format_options = {
+    "format": "m4a/bestaudio/best",
+    "outtmpl": "%(title)s.%(ext)s",
+    "postprocessors": [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a'
+    }],
+}
 
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source: discord.AudioSource, *, data: dict, volume: float = 0.5):
-        super().__init__(source, volume)
+ffmpeg_options = {"options": "-vn"}
 
-        self.data = data
-
-        self.title = data.get("title")
-        self.url = data.get("url")
-
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(
-            None, lambda: ytdl.extract_info(url, download=not stream)
-        )
-
-        if "entries" in data:
-            # Takes the first item from a playlist
-            data = data["entries"][0]
-
-        filename = data["url"] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename), data=data)
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 def main():
     load_dotenv()
@@ -80,11 +68,13 @@ def main():
             if ctx.voice_client is None:
                 await join(ctx)
             async with ctx.typing():
-                source = await YTDLSource.from_url(url)
-                ctx.voice_client.play(source)
-            await ctx.reply('Now playing: {source.title}')
-        except:
-            await ctx.reply("An error occured.")   
+                source = ytdl.extract_info(url,download=True)
+                filename = ytdl.prepare_filename(source)
+                song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+                ctx.voice_client.play(song)
+            await ctx.reply(f"Now playing: {source['title']}")
+        except Exception as e:
+            await ctx.reply(f"An error occured: {e}")   
             
     @bot.command()
     async def stop(ctx):
