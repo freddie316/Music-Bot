@@ -44,10 +44,12 @@ async def join(ctx):
     try:
         channel = ctx.author.voice.channel
     except:
-        await ctx.reply("Are you in voice channel?")  
+        await ctx.reply("Are you in voice channel?")
+        return
     if ctx.voice_client is not None:
         return await ctx.voice_client.move_to(channel)
     await channel.connect()
+    afk_timer.start()
 
 @bot.command()
 async def leave(ctx):
@@ -57,6 +59,8 @@ async def leave(ctx):
         await ctx.voice_client.disconnect()
     except:
         await ctx.reply("I'm not connected to a voice channel.")
+        return
+    afk_timer.stop()
 
 @bot.command()
 async def play(ctx, url):
@@ -68,12 +72,16 @@ async def play(ctx, url):
             filename = ytdl.prepare_filename(source)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e: os.remove(filename)
+                after = lambda e: cleanup(filename)
             )
         await ctx.reply(f"Now playing: {source['title']}")
     except Exception as e:
         await ctx.reply(f"An error occured: {e}")   
-        
+
+def cleanup(filename):
+    os.remove(filename)
+    afk_timer.restart()
+ 
 @bot.command()
 async def stop(ctx):
     if ctx.voice_client is None:
@@ -87,6 +95,14 @@ async def stop(ctx):
 @bot.command()
 async def ping(ctx):
     await ctx.reply("Pong!") 
+    
+@tasks.loop(seconds = 0)
+async def afk_timer():
+    await asyncio.sleep(300) # 5 minutes
+    if not bot.voice_clients[0].is_playing():
+        await bot.voice_clients[0].disconnect()
+        afk_timer.stop()
+    return
 
 def main():
     bot.run(TOKEN)
