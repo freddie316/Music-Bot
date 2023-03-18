@@ -27,7 +27,6 @@ ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 def main():
     load_dotenv()
     TOKEN = os.getenv('DISCORD_TOKEN')
-    GUILD = os.getenv('DISCORD_GUILD')
     
     intents = discord.Intents.default()
     intents.messages = True
@@ -40,8 +39,6 @@ def main():
         print(f'{bot.user} is connected to the following guild:\n')
         for guild in bot.guilds:
             print(f'{guild.name} (id: {guild.id})\n')
-            #if guild.name == GUILD:
-            #   break
         
     @bot.command()
     async def join(ctx):
@@ -71,7 +68,9 @@ def main():
                 source = ytdl.extract_info(url,download=True)
                 filename = ytdl.prepare_filename(source)
                 song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
-                ctx.voice_client.play(song)
+                ctx.voice_client.play(song,
+                    after = lambda e: os.remove(filename)
+                )
             await ctx.reply(f"Now playing: {source['title']}")
         except Exception as e:
             await ctx.reply(f"An error occured: {e}")   
@@ -83,7 +82,7 @@ def main():
             return
         if not ctx.voice_client.is_playing():
             await ctx.reply("I'm not playing anything.")  
-            return
+            return 
         ctx.voice_client.stop()
 
     bot.run(TOKEN)
