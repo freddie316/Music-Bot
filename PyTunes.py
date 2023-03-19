@@ -1,7 +1,7 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.2
+Version: 1.3
 """
 
 import os
@@ -66,9 +66,17 @@ async def leave(ctx):
 
 @bot.command()
 async def play(ctx, url):
+    global repeatFlag
     try:
         if ctx.voice_client is None:
             await join(ctx)
+        if ctx.voice_client.is_playing():
+            if repeatFlag:
+                repeatFlag = False
+                ctx.voice_client.stop()
+                repeatFlag = True
+            else:
+                ctx.voice_client.stop()
         async with ctx.typing():
             source = ytdl.extract_info(url,download=True)
             filename = ytdl.prepare_filename(source)
@@ -81,7 +89,8 @@ async def play(ctx, url):
         await ctx.reply(f"An error occured: {e}")   
 
 def cleanup(ctx,filename):
-    if repeat:
+    global repeatFlag
+    if repeatFlag:
         song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
         ctx.voice_client.play(song,
             after = lambda e: cleanup(ctx,filename)
