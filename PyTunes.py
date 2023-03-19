@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 ytdl_format_options = {
     "format": "m4a/bestaudio/best",
     "outtmpl": "%(title)s.%(ext)s",
+    "no-playlist": True, 
     "postprocessors": [{
         'key': 'FFmpegExtractAudio',
         'preferredcodec': 'm4a'
