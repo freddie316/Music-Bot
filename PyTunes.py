@@ -1,7 +1,7 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-
+Version: 1.2
 """
 
 import os
@@ -33,6 +33,7 @@ intents.messages = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!',intents=intents)
+repeatFlag = False
 
 @bot.event
 async def on_ready():
@@ -73,15 +74,32 @@ async def play(ctx, url):
             filename = ytdl.prepare_filename(source)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e: cleanup(filename)
+                after = lambda e: cleanup(ctx,filename)
             )
         await ctx.reply(f"Now playing: {source['title']}")
     except Exception as e:
         await ctx.reply(f"An error occured: {e}")   
 
-def cleanup(filename):
-    os.remove(filename)
-    afk_timer.restart()
+def cleanup(ctx,filename):
+    if repeat:
+        song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+        ctx.voice_client.play(song,
+            after = lambda e: cleanup(ctx,filename)
+        )
+    else:
+        os.remove(filename)
+        afk_timer.restart()
+        
+ 
+@bot.command()
+async def repeat(ctx):
+    global repeatFlag
+    if repeatFlag:
+        repeatFlag = False
+    else:
+        repeatFlag = True
+    await ctx.reply(f"Repeat mode: {repeatFlag}")
+     
  
 @bot.command()
 async def stop(ctx):
