@@ -1,7 +1,7 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.4.1
+Version: 1.4.2
 """
 
 import os
@@ -45,9 +45,12 @@ class Music(commands.Cog):
         self.bot = bot
         self.repeatFlag = False
         self.queue = []
-    
+        self.ctx = None
+        self.filename = None
+        
     @commands.command()
     async def join(self, ctx):
+        self.ctx = ctx
         try:
             channel = ctx.author.voice.channel
         except:
@@ -60,6 +63,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
+        self.ctx = ctx
         try:
             if ctx.voice_client.is_playing():
                 await self.stop(ctx)
@@ -71,6 +75,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, url):
+        self.ctx = ctx
         try:
             async with ctx.typing():
                 if ctx.voice_client is None:
@@ -83,35 +88,37 @@ class Music(commands.Cog):
                     return
                 
                 source = ytdl.extract_info(url,download=True)
-                filename = ytdl.prepare_filename(source)
-                song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+                self.filename = ytdl.prepare_filename(source)
+                song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.filename, **ffmpeg_options))
                 ctx.voice_client.play(song,
-                    after = lambda e: self.cleanup(ctx,filename)
+                    after = lambda e: self.cleanup()
                 )
                 await ctx.reply(f"Now playing: {source['title']}")
         except Exception as e:
             await ctx.reply(f"An error occured: {e}")   
 
-    def cleanup(self, ctx, filename):
+    def cleanup(self):
+        print(self.repeatFlag)
         if self.repeatFlag:
-            song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
-            ctx.voice_client.play(song,
-                after = lambda e: self.cleanup(ctx,filename)
+            song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.filename, **ffmpeg_options))
+            self.ctx.voice_client.play(song,
+                after = lambda e: self.cleanup()
             )
         elif self.queue:
-            os.remove(filename)
+            os.remove(self.filename)
             self.afk_timer.restart()
-            filename = self.queue.pop(0)
-            song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
-            ctx.voice_client.play(song,
-                after = lambda e: self.cleanup(ctx,filename)
+            self.filename = self.queue.pop(0)
+            song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.filename, **ffmpeg_options))
+            self.ctx.voice_client.play(song,
+                after = lambda e: self.cleanup()
             )
         else:
-            os.remove(filename)
+            os.remove(self.filename)
             self.afk_timer.restart()
             
     @commands.command()
     async def repeat(self,ctx):
+        self.ctx = ctx
         if self.repeatFlag:
             self.repeatFlag = False
         else:
@@ -121,16 +128,24 @@ class Music(commands.Cog):
     
     @commands.command()
     async def stop(self, ctx):
+        self.ctx = ctx
         if ctx.voice_client is None:
             await ctx.reply("I'm not connected to a voice channel.")  
             return
         if not ctx.voice_client.is_playing():
             await ctx.reply("I'm not playing anything.")  
-            return 
-        ctx.voice_client.stop()
+            return
+        if self.repeatFlag:
+            self.repeatFlag = False
+            print(self.repeatFlag)
+            ctx.voice_client.stop()
+            self.repeatFlag = True
+        else:
+            ctx.voice_client.stop()
         
     @commands.command()
     async def ping(self, ctx):
+        self.ctx = ctx
         await ctx.reply("Pong!") 
         
     @tasks.loop(seconds = 0)
