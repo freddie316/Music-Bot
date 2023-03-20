@@ -1,7 +1,7 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.4.0
+Version: 1.4.1
 """
 
 import os
@@ -72,22 +72,23 @@ class Music(commands.Cog):
     @commands.command()
     async def play(self, ctx, url):
         try:
-            if ctx.voice_client is None:
-                await self.join(ctx)
-            if ctx.voice_client.is_playing():
-                source = ytdl.extract_info(url,download=True)
-                filename = ytdl.prepare_filename(source)
-                self.queue.append(filename)
-                await ctx.reply(f"Added to queue: {source['title']}")
-                return
             async with ctx.typing():
+                if ctx.voice_client is None:
+                    await self.join(ctx)
+                if ctx.voice_client.is_playing():
+                    source = ytdl.extract_info(url,download=True)
+                    filename = ytdl.prepare_filename(source)
+                    self.queue.append(filename)
+                    await ctx.reply(f"Added to queue: {source['title']}")
+                    return
+                
                 source = ytdl.extract_info(url,download=True)
                 filename = ytdl.prepare_filename(source)
                 song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
                 ctx.voice_client.play(song,
                     after = lambda e: self.cleanup(ctx,filename)
                 )
-            await ctx.reply(f"Now playing: {source['title']}")
+                await ctx.reply(f"Now playing: {source['title']}")
         except Exception as e:
             await ctx.reply(f"An error occured: {e}")   
 
