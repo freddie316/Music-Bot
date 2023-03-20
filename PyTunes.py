@@ -39,6 +39,16 @@ async def on_ready():
     print(f'{bot.user} is connected to the following guild:\n')
     for guild in bot.guilds:
         print(f'{guild.name} (id: {guild.id})\n')
+        
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(event)
+
+@bot.command()
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.reply("Shutting down.")
+    await bot.close()
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -48,47 +58,68 @@ class Music(commands.Cog):
         
     @commands.command()
     async def join(self, ctx):
+        print("Join command")
         try:
             channel = ctx.author.voice.channel
+            print("Found author channel")
         except:
+            print("Failed to find author channel")
             await ctx.reply("Are you in voice channel?")
             return
         if ctx.voice_client is not None:
+            print("Moving channels")
             return await ctx.voice_client.move_to(channel)
+        print("Connecting")
         await channel.connect()
+        print("Initiating AFK timer")
         self.afk_timer.start()
 
     @commands.command()
     async def leave(self, ctx):
+        print("Leave command")
         try:
             if ctx.voice_client.is_playing():
+                print("Stopping audio")
                 await self.stop(ctx)
+            print("Disconnecting from voice")
             await ctx.voice_client.disconnect()
         except:
+            print("Not connected")
             await ctx.reply("I'm not connected to a voice channel.")
             return
+        print("Stopping AFK timer")
         self.afk_timer.stop()
 
     @commands.command()
     async def play(self, ctx, url):
+        print("Play command")
         try:
             async with ctx.typing():
+                print("Checking voice status")
                 if ctx.voice_client is None:
                     await self.join(ctx)
+                print("Checking play status")
                 if ctx.voice_client.is_playing():
+                    print("Downloading song")
                     source = ytdl.extract_info(url,download=True)
+                    print("Getting filename")
                     filename = ytdl.prepare_filename(source)
+                    print("Adding to queue")
                     self.queue.append(filename)
                     await ctx.reply(f"Added to queue: {source['title']}")
                     return
                 
+                print("Downloading song")
                 source = ytdl.extract_info(url,download=True)
+                print("Getting filename")
                 filename = ytdl.prepare_filename(source)
+                print("Preparing audio")
                 song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+                print("Playing song")
                 ctx.voice_client.play(song,
-                    after = lambda e,ctx=ctx,filename=filename: self.cleanup(ctx,filename)
+                    after = lambda e: self.cleanup(ctx, filename)
                 )
-                await ctx.reply(f"Now playing: {source['title']}")
+            await ctx.reply(f"Now playing: {source['title']}")
         except Exception as e:
             await ctx.reply(f"An error occured: {e}")   
 
@@ -97,7 +128,7 @@ class Music(commands.Cog):
         if self.repeatFlag:
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e,ctx=ctx,filename=filename: self.cleanup(ctx,filename)
+                after = lambda e: self.cleanup(ctx,filename)
             )
         elif self.queue:
             os.remove(filename)
@@ -105,14 +136,14 @@ class Music(commands.Cog):
             filename = self.queue.pop(0)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e,ctx=ctx,filename=filename: self.cleanup(ctx,filename)
+                after = lambda e: self.cleanup(ctx,filename)
             )
         else:
             os.remove(filename)
             self.afk_timer.restart()
             
     @commands.command()
-    async def repeat(self,ctx):
+    async def repeat(self, ctx):
         if self.repeatFlag:
             self.repeatFlag = False
         else:
@@ -132,7 +163,6 @@ class Music(commands.Cog):
             self.repeatFlag = False
             print(self.repeatFlag)
             ctx.voice_client.stop()
-            self.repeatFlag = True
         else:
             ctx.voice_client.stop()
         
@@ -142,9 +172,10 @@ class Music(commands.Cog):
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
+        print("Timer tick")
         await asyncio.sleep(300) # 5 minutes
-        if not bot.voice_clients[0].is_playing():
-            await bot.voice_clients[0].disconnect()
+        if not self.bot.voice_clients[0].is_playing():
+            await self.bot.voice_clients[0].disconnect()
             self.afk_timer.stop()
         return
 
