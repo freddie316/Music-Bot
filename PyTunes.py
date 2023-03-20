@@ -1,7 +1,7 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.3
+Version: 1.4.0
 """
 
 import os
@@ -44,6 +44,7 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.repeatFlag = False
+        self.queue = []
     
     @commands.command()
     async def join(self, ctx):
@@ -74,12 +75,11 @@ class Music(commands.Cog):
             if ctx.voice_client is None:
                 await self.join(ctx)
             if ctx.voice_client.is_playing():
-                if self.repeatFlag:
-                    self.repeatFlag = False
-                    ctx.voice_client.stop() # this might not be working
-                    self.repeatFlag = True
-                else:
-                    ctx.voice_client.stop()
+                source = ytdl.extract_info(url,download=True)
+                filename = ytdl.prepare_filename(source)
+                self.queue.append(filename)
+                await ctx.reply(f"Added to queue: {source['title']}")
+                return
             async with ctx.typing():
                 source = ytdl.extract_info(url,download=True)
                 filename = ytdl.prepare_filename(source)
@@ -93,6 +93,14 @@ class Music(commands.Cog):
 
     def cleanup(self, ctx, filename):
         if self.repeatFlag:
+            song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+            ctx.voice_client.play(song,
+                after = lambda e: self.cleanup(ctx,filename)
+            )
+        elif self.queue:
+            os.remove(filename)
+            self.afk_timer.restart()
+            filename = self.queue.pop(0)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
                 after = lambda e: self.cleanup(ctx,filename)
