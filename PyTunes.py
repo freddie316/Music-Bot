@@ -5,6 +5,8 @@ Version: 1.4.2
 """
 
 import os
+import sys
+import traceback
 import asyncio
 import yt_dlp
 import discord
@@ -29,7 +31,6 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 intents = discord.Intents.default()
-intents.messages = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!',intents=intents)
@@ -43,6 +44,11 @@ async def on_ready():
 @bot.event
 async def on_error(event, *args, **kwargs):
     print(event)
+
+@bot.event
+async def on_command_error(ctx,error):
+    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 @bot.command()
 @commands.is_owner()
@@ -68,9 +74,15 @@ class Music(commands.Cog):
             return
         if ctx.voice_client is not None:
             print("Moving channels")
-            return await ctx.voice_client.move_to(channel)
+            await ctx.voice_client.move_to(channel)
+            print("Restarting AFK timer")
+            self.afk_timer.restart()
+            return
         print("Connecting")
-        await channel.connect()
+        try:
+            await channel.connect(timeout=15.0,reconnect=True)
+        except Exception as e:
+            print(e)
         print("Initiating AFK timer")
         self.afk_timer.start()
 
@@ -82,7 +94,7 @@ class Music(commands.Cog):
                 print("Stopping audio")
                 await self.stop(ctx)
             print("Disconnecting from voice")
-            await ctx.voice_client.disconnect()
+            await ctx.voice_client.disconnect(force=True)
         except:
             print("Not connected")
             await ctx.reply("I'm not connected to a voice channel.")
@@ -117,18 +129,18 @@ class Music(commands.Cog):
                 song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
                 print("Playing song")
                 ctx.voice_client.play(song,
-                    after = lambda e: self.cleanup(ctx, filename)
+                    after = lambda e: self.clean_up(ctx, filename)
                 )
             await ctx.reply(f"Now playing: {source['title']}")
         except Exception as e:
             await ctx.reply(f"An error occured: {e}")   
 
-    def cleanup(self, ctx, filename):
+    def clean_up(self, ctx, filename):
         print(self.repeatFlag)
         if self.repeatFlag:
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e: self.cleanup(ctx,filename)
+                after = lambda e: self.clean_up(ctx,filename)
             )
         elif self.queue:
             os.remove(filename)
@@ -136,7 +148,7 @@ class Music(commands.Cog):
             filename = self.queue.pop(0)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
-                after = lambda e: self.cleanup(ctx,filename)
+                after = lambda e: self.clean_up(ctx,filename)
             )
         else:
             os.remove(filename)
