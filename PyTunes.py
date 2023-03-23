@@ -64,70 +64,70 @@ class Music(commands.Cog):
         
     @commands.command()
     async def join(self, ctx):
-        print("Join command")
+        #print("Join command")
         try:
             channel = ctx.author.voice.channel
-            print("Found author channel")
+            #print("Found author channel")
         except:
-            print("Failed to find author channel")
+            #print("Failed to find author channel")
             await ctx.reply("Are you in voice channel?")
             return
         if ctx.voice_client is not None:
-            print("Moving channels")
+            #print("Moving channels")
             await ctx.voice_client.move_to(channel)
-            print("Restarting AFK timer")
+            #print("Restarting AFK timer")
             self.afk_timer.restart()
             return
-        print("Connecting")
+        #print("Connecting")
         try:
             await channel.connect(timeout=15.0,reconnect=True)
         except Exception as e:
             print(e)
-        print("Initiating AFK timer")
+        #print("Initiating AFK timer")
         self.afk_timer.start()
 
     @commands.command()
     async def leave(self, ctx):
-        print("Leave command")
+        #print("Leave command")
         try:
             if ctx.voice_client.is_playing():
-                print("Stopping audio")
+                #print("Stopping audio")
                 await self.stop(ctx)
-            print("Disconnecting from voice")
+            #print("Disconnecting from voice")
             await ctx.voice_client.disconnect(force=True)
         except:
-            print("Not connected")
+            #print("Not connected")
             await ctx.reply("I'm not connected to a voice channel.")
             return
-        print("Stopping AFK timer")
+        #print("Stopping AFK timer")
         self.afk_timer.stop()
 
     @commands.command()
     async def play(self, ctx, url):
-        print("Play command")
+        #print("Play command")
         try:
             async with ctx.typing():
-                print("Checking voice status")
+                #print("Checking voice status")
                 if ctx.voice_client is None:
                     await self.join(ctx)
-                print("Checking play status")
+                #print("Checking play status")
                 if ctx.voice_client.is_playing():
-                    print("Downloading song")
+                    #print("Downloading song")
                     source = ytdl.extract_info(url,download=True)
-                    print("Getting filename")
+                    #print("Getting filename")
                     filename = ytdl.prepare_filename(source)
-                    print("Adding to queue")
+                    #print("Adding to queue")
                     self.queue.append(filename)
                     await ctx.reply(f"Added to queue: {source['title']}")
                     return
                 
-                print("Downloading song")
+                #print("Downloading song")
                 source = ytdl.extract_info(url,download=True)
-                print("Getting filename")
+                #print("Getting filename")
                 filename = ytdl.prepare_filename(source)
-                print("Preparing audio")
+                #print("Preparing audio")
                 song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
-                print("Playing song")
+                #print("Playing song")
                 ctx.voice_client.play(song,
                     after = lambda e: self.clean_up(ctx, filename)
                 )
@@ -184,7 +184,7 @@ class Music(commands.Cog):
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
-        print("Timer tick")
+        #print("Timer tick")
         await asyncio.sleep(300) # 5 minutes
         if not self.bot.voice_clients[0].is_playing():
             await self.bot.voice_clients[0].disconnect()
