@@ -141,7 +141,8 @@ class Music(commands.Cog):
             await ctx.reply(f"An error occured: {e}")   
 
     def clean_up(self, ctx, filename):
-        print(self.repeatFlag)
+        """Function for handling the aftermath of playing a song"""
+        #print(self.repeatFlag)
         if self.repeatFlag:
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
