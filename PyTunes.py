@@ -184,8 +184,8 @@ class Music(commands.Cog):
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
-        #print("Timer tick")
         await asyncio.sleep(300) # 5 minutes
+        #print("Timer tick")
         if not self.bot.voice_clients[0].is_playing():
             await self.bot.voice_clients[0].disconnect()
             self.afk_timer.stop()
