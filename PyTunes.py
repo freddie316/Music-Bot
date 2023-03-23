@@ -1,8 +1,9 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.4.2
 """
+
+version = 1.5
 
 import os
 import sys
@@ -53,6 +54,7 @@ async def on_command_error(ctx,error):
 @bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
+    """Bot owner only, closes the bots connection with discord"""
     await ctx.reply("Shutting down.")
     await bot.close()
 
@@ -64,6 +66,7 @@ class Music(commands.Cog):
         
     @commands.command()
     async def join(self, ctx):
+        """Joins your current voice channel"""
         #print("Join command")
         try:
             channel = ctx.author.voice.channel
@@ -88,6 +91,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
+        """Exits the current voice channel"""
         #print("Leave command")
         try:
             if ctx.voice_client.is_playing():
@@ -104,6 +108,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, url):
+        """Plays the audio from the provided youtube link"""
         #print("Play command")
         try:
             async with ctx.typing():
@@ -156,6 +161,7 @@ class Music(commands.Cog):
             
     @commands.command()
     async def repeat(self, ctx):
+        """Turns on repeat for the current song"""
         if self.repeatFlag:
             self.repeatFlag = False
         else:
@@ -165,6 +171,7 @@ class Music(commands.Cog):
     
     @commands.command()
     async def stop(self, ctx):
+        """Stops playing the current song"""
         if ctx.voice_client is None:
             await ctx.reply("I'm not connected to a voice channel.")  
             return
@@ -180,6 +187,7 @@ class Music(commands.Cog):
         
     @commands.command()
     async def ping(self, ctx):
+        """Pong!"""
         await ctx.reply("Pong!") 
         
     @tasks.loop(seconds = 0)
