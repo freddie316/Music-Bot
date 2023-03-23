@@ -181,7 +181,7 @@ class Music(commands.Cog):
             return
         if self.repeatFlag:
             self.repeatFlag = False
-            print(self.repeatFlag)
+            #print(self.repeatFlag)
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
