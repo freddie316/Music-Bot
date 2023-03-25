@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = 1.5.1
+version = "1.5.1"
 
 import os
 import sys
