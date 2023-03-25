@@ -103,7 +103,7 @@ class Music(commands.Cog):
                 #print("Stopping audio")
                 await self.stop(ctx)
             #print("Disconnecting from voice")
-            await ctx.voice_client.disconnect(force=True)
+            await ctx.voice_client.disconnect()
         except:
             #print("Not connected")
             await ctx.reply("I'm not connected to a voice channel.")
