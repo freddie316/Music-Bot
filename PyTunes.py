@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = 1.5
+version = 1.5.1
 
 import os
 import sys
@@ -50,6 +50,11 @@ async def on_error(event, *args, **kwargs):
 async def on_command_error(ctx,error):
     print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+@bot.command()
+async def ping(self, ctx):
+    """Pong!"""
+    await ctx.reply("Pong!") 
 
 @bot.command()
 @commands.is_owner()
@@ -185,11 +190,6 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
-        
-    @commands.command()
-    async def ping(self, ctx):
-        """Pong!"""
-        await ctx.reply("Pong!") 
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
