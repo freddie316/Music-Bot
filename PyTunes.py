@@ -1,8 +1,9 @@
 """
 Author: freddie316
 Date: Thu Mar 16 2023
-Version: 1.4.2
 """
+
+version = "1.5"
 
 import os
 import sys
@@ -51,9 +52,18 @@ async def on_command_error(ctx,error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 @bot.command()
+async def ping(self, ctx):
+    """Pong!"""
+    await ctx.reply("Pong!") 
+
+@bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
+    """Bot owner only, closes the bots connection with discord"""
+    print("Beginning shutdown.")
     await ctx.reply("Shutting down.")
+    if not ctx.voice_client.is_playing():
+        await bot.stop(ctx)
     await bot.close()
 
 class Music(commands.Cog):
@@ -64,6 +74,7 @@ class Music(commands.Cog):
         
     @commands.command()
     async def join(self, ctx):
+        """Joins your current voice channel"""
         #print("Join command")
         try:
             channel = ctx.author.voice.channel
@@ -81,20 +92,25 @@ class Music(commands.Cog):
         #print("Connecting")
         try:
             await channel.connect(timeout=15.0,reconnect=True)
+            print(f"Connected to {channel}")
+
         except Exception as e:
+            print("Failed to connect.")
             print(e)
-        #print("Initiating AFK timer")
-        self.afk_timer.start()
+        else:
+            #print("Initiating AFK timer")
+            self.afk_timer.start() 
 
     @commands.command()
     async def leave(self, ctx):
+        """Exits the current voice channel"""
         #print("Leave command")
         try:
             if ctx.voice_client.is_playing():
                 #print("Stopping audio")
                 await self.stop(ctx)
             #print("Disconnecting from voice")
-            await ctx.voice_client.disconnect(force=True)
+            await ctx.voice_client.disconnect()
         except:
             #print("Not connected")
             await ctx.reply("I'm not connected to a voice channel.")
@@ -104,6 +120,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, url):
+        """Plays the audio from the provided youtube link"""
         #print("Play command")
         try:
             async with ctx.typing():
@@ -136,7 +153,8 @@ class Music(commands.Cog):
             await ctx.reply(f"An error occured: {e}")   
 
     def clean_up(self, ctx, filename):
-        print(self.repeatFlag)
+        """Function for handling the aftermath of playing a song"""
+        #print(self.repeatFlag)
         if self.repeatFlag:
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
@@ -156,6 +174,7 @@ class Music(commands.Cog):
             
     @commands.command()
     async def repeat(self, ctx):
+        """Turns on repeat for the current song"""
         if self.repeatFlag:
             self.repeatFlag = False
         else:
@@ -165,6 +184,7 @@ class Music(commands.Cog):
     
     @commands.command()
     async def stop(self, ctx):
+        """Stops playing the current song"""
         if ctx.voice_client is None:
             await ctx.reply("I'm not connected to a voice channel.")  
             return
@@ -173,22 +193,21 @@ class Music(commands.Cog):
             return
         if self.repeatFlag:
             self.repeatFlag = False
-            print(self.repeatFlag)
+            #print(self.repeatFlag)
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
-        
-    @commands.command()
-    async def ping(self, ctx):
-        await ctx.reply("Pong!") 
+        print(f"Disconnected from {ctx.voice_client.channel}")
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
         await asyncio.sleep(300) # 5 minutes
         #print("Timer tick")
-        if not self.bot.voice_clients[0].is_playing():
-            await self.bot.voice_clients[0].disconnect()
-            self.afk_timer.stop()
+        for vc in self.bot.voice_clients:
+            if not vc.is_playing():
+                await vc.disconnect()
+                print(f"Disconnected from {vc.channel}")
+                self.afk_timer.stop()
         return
 
 def main():
