@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = "1.5.1"
+version = "1.5"
 
 import os
 import sys
@@ -92,10 +92,14 @@ class Music(commands.Cog):
         #print("Connecting")
         try:
             await channel.connect(timeout=15.0,reconnect=True)
+            print(f"Connected to {channel}")
+
         except Exception as e:
+            print("Failed to connect.")
             print(e)
-        #print("Initiating AFK timer")
-        self.afk_timer.start()
+        else:
+            #print("Initiating AFK timer")
+            self.afk_timer.start() 
 
     @commands.command()
     async def leave(self, ctx):
