@@ -60,7 +60,10 @@ async def ping(self, ctx):
 @commands.is_owner()
 async def shutdown(ctx):
     """Bot owner only, closes the bots connection with discord"""
+    print("Beginning shutdown.")
     await ctx.reply("Shutting down.")
+    if not ctx.voice_client.is_playing():
+        await bot.stop(ctx)
     await bot.close()
 
 class Music(commands.Cog):
@@ -190,14 +193,17 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
+        print(f"Disconnected from {ctx.voice_client.channel}")
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
         await asyncio.sleep(300) # 5 minutes
         #print("Timer tick")
-        if not self.bot.voice_clients[0].is_playing():
-            await self.bot.voice_clients[0].disconnect()
-            self.afk_timer.stop()
+        for vc in self.bot.voice_clients:
+            if not vc.is_playing():
+                await vc.disconnect()
+                print(f"Disconnected from {vc.channel}")
+                self.afk_timer.stop()
         return
 
 def main():
