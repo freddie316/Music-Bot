@@ -1,19 +1,14 @@
 """
 Author: freddie316
-Date: Thu Mar 16 2023
+Date: Sun Mar 26 2023
 """
 
-version = "1.6"
-
 import os
-import sys
-import traceback
+import validators
 import asyncio
 import yt_dlp
-import validators
 import discord
 from discord.ext import commands, tasks
-from dotenv import load_dotenv
 
 ytdl_format_options = {
     "format": "m4a/bestaudio/best",
@@ -30,51 +25,8 @@ ffmpeg_options = {"options": "-vn"}
 
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix='!',intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f'{bot.user} is connected to the following guild:\n')
-    for guild in bot.guilds:
-        print(f'{guild.name} (id: {guild.id})\n')
-        
-@bot.event
-async def on_error(event, *args, **kwargs):
-    print(event)
-
-@bot.event
-async def on_command_error(ctx,error):
-    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-
-@bot.command()
-async def ping(self, ctx):
-    """Pong!"""
-    await ctx.reply("Pong!") 
-
-@bot.command()
-@commands.is_owner()
-async def shutdown(ctx):
-    """Bot owner only, closes the bots connection with discord"""
-    print("Beginning shutdown.")
-    await ctx.reply("Shutting down.")
-    try:
-        if ctx.voice_client.is_playing():
-            await bot.stop(ctx)
-    finally:
-        for vc in bot.voice_clients:
-            await vc.disconnect()
-            print(f"Disconnected from {vc.channel}")
-        await bot.close()
-
 class Music(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.bot):
         self.bot = bot
         self.repeatFlag = False
         self.queue = []
@@ -138,7 +90,7 @@ class Music(commands.Cog):
                         await msg.add_reaction(emoji)
                     def check(react,user):
                         return react.emoji in reactions and user == ctx.author
-                    response = await bot.wait_for(
+                    response = await self.bot.wait_for(
                         "reaction_add",
                         check=check
                     )
@@ -175,7 +127,6 @@ class Music(commands.Cog):
             )
         elif self.queue:
             os.remove(filename)
-            self.afk_timer.restart()
             filename = self.queue.pop(0)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
@@ -183,7 +134,7 @@ class Music(commands.Cog):
             )
         else:
             os.remove(filename)
-            self.afk_timer.restart()
+        self.afk_timer.restart()
      
     @commands.command()
     async def repeat(self, ctx):
@@ -222,8 +173,7 @@ class Music(commands.Cog):
         return
 
 def main():
-    bot.add_cog(Music(bot))
-    bot.run(TOKEN)
+
     return
 
 if __name__ == "__main__":

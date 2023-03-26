@@ -1,7 +1,13 @@
 # PyTunes
 A Discord music bot for playing youtube audio
 
-### Commands - Prefix: !
+## Commands - Prefix: !
+### General
+- help - displays information about the commands.
+- shutdown - bot owner only, closes the bots connection to discord.
+- ping - pong!
+
+### Music
 - join - joins your current voice channel.
 - leave - exits the current voice channel.
 - play [query] - will attempt to join your voice channel and will play the audio from the query.
@@ -11,10 +17,10 @@ A Discord music bot for playing youtube audio
         - Title: !play "Never gonna give you up"
 - stop - will stop playing whatever is currently playing.
 - repeat - will repeat the current song until disabled.
-- help - displays this information about the commands.
-- shutdown - bot owner only, closes the bots connection to discord.
-- ping - pong!
 
-### Other Features
+### Fun
+- cringe - cringes!
+
+## Other Features
 - Will queue additional song requests.
 - PyTunes will disconnect from voice after 5 minutes of inactivity.
