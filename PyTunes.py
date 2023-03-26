@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = "1.6"
+version = "1.6.1"
 
 import os
 import sys
@@ -61,7 +61,7 @@ async def ping(self, ctx):
 @bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
-    """Bot owner only, closes the bots connection with discord"""
+    """Bot owner only, closes the bot's connection with discord"""
     print("Beginning shutdown.")
     await ctx.reply("Shutting down.")
     try:
@@ -221,8 +221,17 @@ class Music(commands.Cog):
                 self.afk_timer.stop()
         return
 
+class Fun(commands.Cog):
+    @commands.command()
+    async def cringe(self,ctx):
+        """Cringes"""
+        with open('cringe.png', 'rb') as f:
+            picture = discord.File(f)
+            await ctx.reply(file=picture)
+
 def main():
     bot.add_cog(Music(bot))
+    bot.add_cog(Fun(bot))
     bot.run(TOKEN)
     return
 
