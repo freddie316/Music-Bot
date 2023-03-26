@@ -21,6 +21,6 @@ A Discord music bot for playing youtube audio
 ### Fun
 - cringe - cringes!
 
-### Other Features
+## Other Features
 - Will queue additional song requests.
 - PyTunes will disconnect from voice after 5 minutes of inactivity.
