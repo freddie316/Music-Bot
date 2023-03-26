@@ -127,7 +127,6 @@ class Music(commands.Cog):
             )
         elif self.queue:
             os.remove(filename)
-            self.afk_timer.restart()
             filename = self.queue.pop(0)
             song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
             ctx.voice_client.play(song,
@@ -135,7 +134,7 @@ class Music(commands.Cog):
             )
         else:
             os.remove(filename)
-            self.afk_timer.restart()
+        self.afk_timer.restart()
      
     @commands.command()
     async def repeat(self, ctx):

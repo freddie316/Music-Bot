@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = "1.6.2"
+version = "1.6.3"
 
 # Module Imports
 import os
