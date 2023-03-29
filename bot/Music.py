@@ -160,7 +160,6 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
-        print(f"Disconnected from {ctx.voice_client.channel}")
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
