@@ -13,7 +13,7 @@ from discord.ext import commands, tasks
 ytdl_format_options = {
     "format": "m4a/bestaudio/best",
     "outtmpl": "%(title)s.%(ext)s",
-    "no-playlist": True,
+    "noplaylist": True,
     "default_search": "ytsearch3", 
     "postprocessors": [{
         'key': 'FFmpegExtractAudio',
