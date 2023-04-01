@@ -63,6 +63,7 @@ class Music(commands.Cog):
         except:
             await ctx.reply("I'm not connected to a voice channel.")
             return
+        print(f"Disconnected from {ctx.voice_client.channel}")
         self.afk_timer.stop()
 
     @commands.command()
