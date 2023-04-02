@@ -59,11 +59,11 @@ class Music(commands.Cog):
         try:
             if ctx.voice_client.is_playing():
                 await self.stop(ctx)
+            print(f"Disconnected from {ctx.voice_client.channel}")
             await ctx.voice_client.disconnect()
         except:
             await ctx.reply("I'm not connected to a voice channel.")
             return
-        print(f"Disconnected from {ctx.voice_client.channel}")
         self.afk_timer.stop()
 
     @commands.command()
@@ -167,8 +167,8 @@ class Music(commands.Cog):
         await asyncio.sleep(300) # 5 minutes
         for vc in self.bot.voice_clients:
             if not vc.is_playing():
-                await vc.disconnect()
                 print(f"Disconnected from {vc.channel}")
+                await vc.disconnect()
                 self.afk_timer.stop()
         return
 
