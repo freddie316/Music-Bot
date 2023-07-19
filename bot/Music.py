@@ -73,9 +73,10 @@ class Music(commands.Cog):
             async with ctx.typing():
                 if ctx.voice_client is None:
                     await self.join(ctx)
-                if validators.url(query): # input an actual url
+                if validators.url(query): # true if input is an actual url
                     await self.prepare_song(ctx,query)
                 else:
+                    # Begin search for video
                     source = ytdl.extract_info(query,download=False)
                     guesses = []
                     for entry in source['entries']:
@@ -139,7 +140,7 @@ class Music(commands.Cog):
      
     @commands.command()
     async def repeat(self, ctx):
-        """Turns on repeat for the current song"""
+        """Turns on/off repeat for the current song"""
         if self.repeatFlag:
             self.repeatFlag = False
         else:
