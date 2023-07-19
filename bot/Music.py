@@ -13,7 +13,7 @@ from discord.ext import commands, tasks
 ytdl_format_options = {
     "format": "m4a/bestaudio/best",
     "outtmpl": "%(title)s.%(ext)s",
-    "no-playlist": True,
+    "noplaylist": True,
     "default_search": "ytsearch3", 
     "postprocessors": [{
         'key': 'FFmpegExtractAudio',
@@ -59,6 +59,7 @@ class Music(commands.Cog):
         try:
             if ctx.voice_client.is_playing():
                 await self.stop(ctx)
+            print(f"Disconnected from {ctx.voice_client.channel}")
             await ctx.voice_client.disconnect()
         except:
             await ctx.reply("I'm not connected to a voice channel.")
@@ -72,9 +73,10 @@ class Music(commands.Cog):
             async with ctx.typing():
                 if ctx.voice_client is None:
                     await self.join(ctx)
-                if validators.url(query): # input an actual url
+                if validators.url(query): # true if input is an actual url
                     await self.prepare_song(ctx,query)
                 else:
+                    # Begin search for video
                     source = ytdl.extract_info(query,download=False)
                     guesses = []
                     for entry in source['entries']:
@@ -138,7 +140,7 @@ class Music(commands.Cog):
      
     @commands.command()
     async def repeat(self, ctx):
-        """Turns on repeat for the current song"""
+        """Turns on/off repeat for the current song"""
         if self.repeatFlag:
             self.repeatFlag = False
         else:
@@ -160,15 +162,14 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
-        print(f"Disconnected from {ctx.voice_client.channel}")
         
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
         await asyncio.sleep(300) # 5 minutes
         for vc in self.bot.voice_clients:
             if not vc.is_playing():
-                await vc.disconnect()
                 print(f"Disconnected from {vc.channel}")
+                await vc.disconnect()
                 self.afk_timer.stop()
         return
 
