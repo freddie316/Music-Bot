@@ -12,12 +12,16 @@ class Fun(commands.Cog):
     def __init__(self, bot: commands.bot):
         self.bot = bot
         self.picPath = Path('.').resolve().parent / 'Pictures'
+        
     @commands.command()
     async def cringe(self,ctx):
         """Cringes"""
         with open(self.picPath / 'cringe.png', 'rb') as f:
             picture = discord.File(f)
             await ctx.reply(file=picture)
+
+def setup(bot):
+    bot.add_cog(Fun(bot))
 
 def main():
 

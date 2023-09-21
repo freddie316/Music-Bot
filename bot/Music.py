@@ -9,6 +9,8 @@ import asyncio
 import yt_dlp
 import discord
 from discord.ext import commands, tasks
+from gtts import gTTS
+from pathlib import Path
 
 ytdl_format_options = {
     "format": "m4a/bestaudio/best",
@@ -21,15 +23,25 @@ ytdl_format_options = {
     }],
 }
 
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+
 ffmpeg_options = {"options": "-vn"}
 
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+lang = 'en'
+accent = 'us'
+speech = {"join.m4a":"Ready and waiting."}
 
 class Music(commands.Cog):
     def __init__(self, bot: commands.bot):
         self.bot = bot
         self.repeatFlag = False
         self.queue = []
+        self.audPath = Path('.').resolve().parent / 'Audio'
+        for trigger in speech:
+            if not os.path.isfile(self.audPath / trigger):
+                tts = gTTS(speech[trigger],lang=lang,tld=accent)
+                tts.save(self.audPath / trigger)
+
         
     @commands.command()
     async def join(self, ctx):
@@ -48,10 +60,12 @@ class Music(commands.Cog):
             print(f"Connected to {channel}")
 
         except Exception as e:
-            print("Failed to connect.")
-            print(e)
+            print("Failed to connect: {e}")
         else:
-            self.afk_timer.start() 
+            self.afk_timer.start()
+            filename = list(speech.keys())[0]
+            audio = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+            ctx.voice_client.play(audio)
 
     @commands.command()
     async def leave(self, ctx):
@@ -162,17 +176,23 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
         else:
             ctx.voice_client.stop()
-        
+    
     @tasks.loop(seconds = 0)
     async def afk_timer(self):
-        await asyncio.sleep(300) # 5 minutes
+        await asyncio.sleep(300) # 300s - 5 minutes
         for vc in self.bot.voice_clients:
             if not vc.is_playing():
-                print(f"Disconnected from {vc.channel}")
+                song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.audPath / 'leaving.m4a', **ffmpeg_options))
+                vc.play(song)
+                await asyncio.sleep(3)
                 await vc.disconnect()
+                print(f"Disconnected from {vc.channel}")
                 self.afk_timer.stop()
         return
 
+def setup(bot):
+    bot.add_cog(Music(bot))
+    
 def main():
 
     return
