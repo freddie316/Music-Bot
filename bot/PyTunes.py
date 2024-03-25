@@ -61,7 +61,7 @@ async def shutdown(ctx):
 @bot.command()
 @commands.is_owner()
 async def reload(ctx):
-    """Boat owner only, reloads cogs to facilitate editing without downtime"""
+    """Bot owner only, reloads cogs to facilitate editing without downtime"""
     print(f"Reloading cogs...")
     async with ctx.typing():
         message = await ctx.reply(f"Reloading cogs...")

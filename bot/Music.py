@@ -35,6 +35,7 @@ class Music(commands.Cog):
     def __init__(self, bot: commands.bot):
         self.bot = bot
         self.repeatFlag = False
+        self.leavingAudioFlag = False
         self.queue = []
         self.audPath = Path('.').resolve().parent / 'Audio'
         for trigger in speech:
@@ -63,9 +64,11 @@ class Music(commands.Cog):
             print("Failed to connect: {e}")
         else:
             self.afk_timer.start()
+            """
             filename = list(speech.keys())[0]
-            audio = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename, **ffmpeg_options))
+            audio = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.audPath / filename, **ffmpeg_options))
             ctx.voice_client.play(audio)
+            """
 
     @commands.command()
     async def leave(self, ctx):
@@ -161,6 +164,15 @@ class Music(commands.Cog):
             self.repeatFlag = True
         await ctx.reply(f"Repeat mode: {self.repeatFlag}")
         
+    @commands.command()
+    async def idleAudio(self, ctx):
+        """Turns on/off the funny leave sound"""
+        if self.leavingAudioFlag:
+            self.leavingAudioFlag = False
+            await ctx.reply(f"Disabled idle disconnect audio")
+        else:
+            self.leavingAudioFlag = True
+            await ctx.reply(f"Enabled idle disconnect audio")
     
     @commands.command()
     async def stop(self, ctx):
@@ -182,9 +194,10 @@ class Music(commands.Cog):
         await asyncio.sleep(300) # 300s - 5 minutes
         for vc in self.bot.voice_clients:
             if not vc.is_playing():
-                song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.audPath / 'leaving.m4a', **ffmpeg_options))
-                vc.play(song)
-                await asyncio.sleep(3)
+                if self.leavingAudioFlag:
+                    song = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.audPath / 'leaving.m4a', **ffmpeg_options))
+                    vc.play(song)
+                    await asyncio.sleep(3)
                 await vc.disconnect()
                 print(f"Disconnected from {vc.channel}")
                 self.afk_timer.stop()
