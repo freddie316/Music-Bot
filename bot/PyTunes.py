@@ -8,6 +8,7 @@ version = "2.0.0"
 # Module Imports
 import os
 import sys
+import asyncio
 import traceback
 import discord
 from discord.ext import commands
@@ -39,7 +40,7 @@ async def on_command_error(ctx,error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 @bot.command()
-async def ping(self, ctx):
+async def ping(ctx):
     """Pong!"""
     await ctx.reply("Pong!") 
 
@@ -67,7 +68,7 @@ async def reload(ctx):
         message = await ctx.reply(f"Reloading cogs...")
         try:
             for cog in cogs:
-                bot.reload_extension(cog)
+                await bot.reload_extension(cog)
         except Exception as e:
             print(f"Reload failed")
             await message.edit(content=f"An error occured: {e}")
@@ -75,11 +76,11 @@ async def reload(ctx):
             print(f"Reload complete")
             await message.edit(content=f"Reload complete!")
 
-def main():
-    for cog in cogs:
-        bot.load_extension(cog)
-    bot.run(TOKEN)
-    return
+async def main():
+    async with bot:
+        for cog in cogs:
+            await bot.load_extension(cog)
+        await bot.start(TOKEN)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

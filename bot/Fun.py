@@ -20,8 +20,9 @@ class Fun(commands.Cog):
             picture = discord.File(f)
             await ctx.reply(file=picture)
 
-def setup(bot):
-    bot.add_cog(Fun(bot))
+
+async def setup(bot):
+    await bot.add_cog(Fun(bot))
 
 def main():
 

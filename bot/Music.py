@@ -61,7 +61,8 @@ class Music(commands.Cog):
             print(f"Connected to {channel}")
 
         except Exception as e:
-            print("Failed to connect: {e}")
+            print("Failed to connect: " + e)
+
         else:
             self.afk_timer.start()
             """
@@ -203,8 +204,8 @@ class Music(commands.Cog):
                 self.afk_timer.stop()
         return
 
-def setup(bot):
-    bot.add_cog(Music(bot))
+async def setup(bot):
+    await bot.add_cog(Music(bot))
     
 def main():
 
