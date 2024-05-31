@@ -48,8 +48,12 @@ class Music(commands.Cog):
             print(f"Connected to {channel}")
 
         except Exception as e:
+<<<<<<< Updated upstream
             print("Failed to connect.")
             print(e)
+=======
+            print("Failed to connect: " + e)
+>>>>>>> Stashed changes
         else:
             self.afk_timer.start() 
 
@@ -173,6 +177,12 @@ class Music(commands.Cog):
                 self.afk_timer.stop()
         return
 
+<<<<<<< Updated upstream
+=======
+async def setup(bot):
+    await bot.add_cog(Music(bot))
+    
+>>>>>>> Stashed changes
 def main():
 
     return

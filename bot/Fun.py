@@ -19,6 +19,12 @@ class Fun(commands.Cog):
             picture = discord.File(f)
             await ctx.reply(file=picture)
 
+<<<<<<< Updated upstream
+=======
+async def setup(bot):
+    await bot.add_cog(Fun(bot))
+
+>>>>>>> Stashed changes
 def main():
 
     return

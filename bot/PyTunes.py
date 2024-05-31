@@ -8,6 +8,7 @@ version = "1.7.1"
 # Module Imports
 import os
 import sys
+import asyncio
 import traceback
 import discord
 from discord.ext import commands
@@ -41,7 +42,7 @@ async def on_command_error(ctx,error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 @bot.command()
-async def ping(self, ctx):
+async def ping(ctx):
     """Pong!"""
     await ctx.reply("Pong!") 
 
@@ -60,11 +61,36 @@ async def shutdown(ctx):
             print(f"Disconnected from {vc.channel}")
         await bot.close()
 
+<<<<<<< Updated upstream
 def main():
     bot.add_cog(Music.Music(bot))
     bot.add_cog(Fun.Fun(bot))
     bot.run(TOKEN)
     return
+=======
+@bot.command()
+@commands.is_owner()
+async def reload(ctx):
+    """Bot owner only, reloads cogs to facilitate editing without downtime"""
+    print(f"Reloading cogs...")
+    async with ctx.typing():
+        message = await ctx.reply(f"Reloading cogs...")
+        try:
+            for cog in cogs:
+                await bot.reload_extension(cog)
+        except Exception as e:
+            print(f"Reload failed")
+            await message.edit(content=f"An error occured: {e}")
+        else:
+            print(f"Reload complete")
+            await message.edit(content=f"Reload complete!")
+
+async def main():
+    async with bot:
+        for cog in cogs:
+            await bot.load_extension(cog)
+        await bot.start(TOKEN)
+>>>>>>> Stashed changes
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
