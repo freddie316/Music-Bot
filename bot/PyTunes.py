@@ -3,7 +3,7 @@ Author: freddie316
 Date: Thu Mar 16 2023
 """
 
-version = "1.7.1"
+version = "2.0.0"
 
 # Module Imports
 import os
@@ -14,9 +14,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-# Cog Imports
-import Music
-import Fun
+cogs = ["Music","Fun"]
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -50,7 +48,7 @@ async def ping(ctx):
 @commands.is_owner()
 async def shutdown(ctx):
     """Bot owner only, closes the bot's connection with discord"""
-    print("Beginning shutdown.")
+    print("Beginning shutdown")
     await ctx.reply("Shutting down.")
     try:
         if ctx.voice_client.is_playing():
@@ -61,13 +59,6 @@ async def shutdown(ctx):
             print(f"Disconnected from {vc.channel}")
         await bot.close()
 
-<<<<<<< Updated upstream
-def main():
-    bot.add_cog(Music.Music(bot))
-    bot.add_cog(Fun.Fun(bot))
-    bot.run(TOKEN)
-    return
-=======
 @bot.command()
 @commands.is_owner()
 async def reload(ctx):
@@ -90,7 +81,6 @@ async def main():
         for cog in cogs:
             await bot.load_extension(cog)
         await bot.start(TOKEN)
->>>>>>> Stashed changes
 
 if __name__ == "__main__":
     asyncio.run(main())

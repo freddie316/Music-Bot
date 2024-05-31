@@ -12,6 +12,7 @@ class Fun(commands.Cog):
     def __init__(self, bot: commands.bot):
         self.bot = bot
         self.picPath = Path('.').resolve().parent / 'Pictures'
+        
     @commands.command()
     async def cringe(self,ctx):
         """Cringes"""
@@ -19,12 +20,10 @@ class Fun(commands.Cog):
             picture = discord.File(f)
             await ctx.reply(file=picture)
 
-<<<<<<< Updated upstream
-=======
+
 async def setup(bot):
     await bot.add_cog(Fun(bot))
 
->>>>>>> Stashed changes
 def main():
 
     return
